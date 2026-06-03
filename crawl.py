@@ -1,5 +1,7 @@
 from urllib.parse import urlparse, urljoin
-from bs4 import BeautifulSoup as soup, Tag
+from bs4 import BeautifulSoup as soup, Tag # pyright: ignore[reportMissingImports]
+import sys
+import requests
 
 
 def normalize_url(url):
@@ -42,3 +44,24 @@ def extract_page_data(html: str, page_url:str):
         "outgoing_links": get_urls_from_html(html, page_url),
         "image_urls": get_images_from_html(html, page_url)
     }
+
+def command_line_arguments():
+    if len(sys.argv) < 2:
+        print("no website provided")
+        sys.exit(1)
+    elif len(sys.argv) > 2:
+        print("too many arguments provided")
+        sys.exit(1)
+    else:
+        print(f"starting crawl of: {sys.argv[1]}")
+
+def get_html(url):
+    url_request = requests.get(url, headers={"User-Agent": "BootCrawler/1.0"})
+    if url_request.status_code != 200:
+        print(f"error fetching {url}: status code {url_request.status_code}")
+        return None
+    elif not url_request.headers.get('content-type', "").startswith("text/html"):
+        print(f"error fetching {url}: content type {url_request.headers.get('Content-Type')} is not text/html")
+        return None 
+    else:
+        return url_request.text
