@@ -1,7 +1,8 @@
 import asyncio
+import csv
+import json
 import sys
 from urllib.parse import urljoin, urlparse
-import json
 
 import aiohttp  # pyright: ignore[reportMissingImports]
 from bs4 import BeautifulSoup as soup  # pyright: ignore[reportMissingImports]
@@ -211,3 +212,18 @@ def write_json_report(page_data, filename="report.json"):
     pages = sorted(page_data.values(), key=lambda x: x["url"])
     with open(filename, "w") as f:
         json.dump(pages, f, indent=2)
+
+
+def write_csv_report(page_data, filename="report.csv"):
+    pages = sorted(page_data.values(), key=lambda x: x["url"])
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["url", "heading", "first_paragraph", "outgoing_links", "image_urls"])
+        writer.writeheader()
+        for page in pages:
+            writer.writerow({
+                "url": page["url"],
+                "heading": page["heading"],
+                "first_paragraph": page["first_paragraph"],
+                "outgoing_links": " | ".join(page["outgoing_links"]),
+                "image_urls": " | ".join(page["image_urls"]),
+            })
