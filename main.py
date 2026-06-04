@@ -1,7 +1,7 @@
 import asyncio
 import sys
 
-from crawl import command_line_arguments, crawl_site_async
+from crawl import command_line_arguments, crawl_site_async, write_json_report
 
 # def main():
 #     command_line_arguments()
@@ -12,9 +12,10 @@ from crawl import command_line_arguments, crawl_site_async
 async def main_async():
     command_line_arguments()
     res = await crawl_site_async(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
-    print(res.values())
-    for data in res.values():
-        print(data)
+    write_json_report(res)
+    # print(res.values())
+    # for data in res.values():
+    #     print(data)
 
 
 if __name__ == "__main__":

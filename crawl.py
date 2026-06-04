@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from urllib.parse import urljoin, urlparse
+import json
 
 import aiohttp  # pyright: ignore[reportMissingImports]
 from bs4 import BeautifulSoup as soup  # pyright: ignore[reportMissingImports]
@@ -205,3 +206,8 @@ async def crawl_site_async(base_url, max_concurrency, max_pages):
     ) as crawler:
         final_page_data = await crawler.crawl(base_url)
         return final_page_data
+
+def write_json_report(page_data, filename="report.json"):
+    pages = sorted(page_data.values(), key=lambda x: x["url"])
+    with open(filename, "w") as f:
+        json.dump(pages, f, indent=2)
