@@ -1,12 +1,9 @@
 import asyncio
 import sys
-from this import s
 from urllib.parse import urljoin, urlparse
 
 import aiohttp  # pyright: ignore[reportMissingImports]
-import requests
 from bs4 import BeautifulSoup as soup  # pyright: ignore[reportMissingImports]
-from bs4 import Tag
 
 
 def normalize_url(url):
@@ -105,7 +102,7 @@ class AsyncCrawler:
         session,
         max_pages,
         should_stop,
-        all_tasks
+        all_tasks,
     ):
         self.base_url = base_url
         self.base_domain = base_domain
@@ -175,15 +172,15 @@ class AsyncCrawler:
                 and urlparse(current_url).netloc == urlparse(base_url).netloc
             ):
                 async with self.lock:
-                    self.page_data[normalized] = extract_page_data(
-                        html, current_url
-                    )
+                    self.page_data[normalized] = extract_page_data(html, current_url)
                 tasks = []
                 try:
                     for url in get_urls_from_html(html, current_url):
-                        tasks.append(asyncio.create_task(self.crawl_page(base_url, url)))
+                        tasks.append(
+                            asyncio.create_task(self.crawl_page(base_url, url))
+                        )
                         self.all_tasks.add(tasks[-1])
-                    await asyncio.gather(*tasks)
+                    await asyncio.gather(*tasks, return_exceptions=True)
                 finally:
                     for task in tasks:
                         self.all_tasks.remove(task)
