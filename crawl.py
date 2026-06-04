@@ -65,3 +65,17 @@ def get_html(url):
         return None 
     else:
         return url_request.text
+    
+def crawl_page(base_url, current_url=None, page_data=None):
+    if current_url is None:
+        current_url = base_url
+    if page_data is None:
+        page_data = {}
+    html = get_html(current_url)
+    normalized = normalize_url(current_url)
+    print(f"Crawling: {current_url}")
+    if html and normalized not in page_data and urlparse(current_url).netloc == urlparse(base_url).netloc:
+        page_data[normalized] = extract_page_data(html, current_url)
+        for url in get_urls_from_html(html, current_url):
+            crawl_page(base_url, url, page_data)
+        return page_data
