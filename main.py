@@ -1,13 +1,21 @@
+import asyncio
 import sys
-from crawl import get_html, command_line_arguments, crawl_page
+
+from crawl import command_line_arguments, crawl_site_async
+
+# def main():
+#     command_line_arguments()
+#     print(get_html(sys.argv[1]))
+#     crawl_page(sys.argv[1])
 
 
-def main():
+async def main_async():
     command_line_arguments()
-    # print(get_html(sys.argv[1]))
-    crawl_page(sys.argv[1])
-
+    res = await crawl_site_async(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    print(res.values())
+    for data in res.values():
+        print(data)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main_async())
