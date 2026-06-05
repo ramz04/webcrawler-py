@@ -10,3 +10,5 @@ wheels/
 .venv
 .zed
 .vscode
+.env
+.*env/

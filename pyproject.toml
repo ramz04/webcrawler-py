@@ -8,5 +8,6 @@ dependencies = [
     "aiohttp>=3.13.5",
     "beautifulsoup4==4.13.4",
     "bs4>=0.0.2",
+    "dotenv>=0.9.9",
     "requests==2.32.4",
 ]
