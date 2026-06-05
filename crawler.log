@@ -3,3 +3,7 @@
 2026-06-05 08:51:37,784 - INFO - Scheduler started
 2026-06-05 08:51:37,784 - INFO - Crawl started — https://crawler-test.com/
 2026-06-05 08:51:40,890 - INFO - Crawl complete — 25 pages crawled
+2026-06-05 08:56:38,538 - INFO - Running job "run_crawl (trigger: interval[0:05:00], next run at: 2026-06-05 09:01:37 GMT)" (scheduled at 2026-06-05 08:56:37.774332+00:00)
+2026-06-05 08:56:38,539 - INFO - Crawl started — https://crawler-test.com/
+2026-06-05 08:56:41,889 - INFO - Crawl complete — 25 pages crawled
+2026-06-05 08:56:46,158 - INFO - Job "run_crawl (trigger: interval[0:05:00], next run at: 2026-06-05 09:01:37 GMT)" executed successfully

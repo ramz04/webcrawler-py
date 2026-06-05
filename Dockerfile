@@ -8,7 +8,7 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync --no-dev --frozen
 
-COPY crawl.py main.py ./
+COPY crawl.py main.py notify.py scheduler.py ./
 
 ENTRYPOINT ["uv", "run", "main.py"]
 

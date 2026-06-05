@@ -21,6 +21,7 @@ URL = os.getenv("CRAWL_URL", "https://crawler-test.com/")
 MAX_CONCURRENCY = int(os.getenv("MAX_CONCURRENCY", "3"))
 MAX_PAGES = int(os.getenv("MAX_PAGES", "25"))
 RECIPIENT = os.environ["RECIPIENT_EMAIL"]
+MAX_DEPTH = int(os.getenv("MAX_DEPTH", "20"))
 
 
 async def run_crawl():
@@ -29,7 +30,7 @@ async def run_crawl():
     print(f"[{start}] Starting crawl of {URL}")
 
     try:
-        page_data = await crawl_site_async(URL, MAX_CONCURRENCY, MAX_PAGES)
+        page_data = await crawl_site_async(URL, MAX_CONCURRENCY, MAX_PAGES, MAX_DEPTH)
         write_json_report(page_data, base_url=URL)
 
         logging.info(f"Crawl complete — {len(page_data)} pages crawled")

@@ -1,6 +1,6 @@
 {
   "base_url": "https://crawler-test.com/",
-  "timestamp": "2026-06-05T08:51:40.888410+00:00",
+  "timestamp": "2026-06-05T18:39:45.156666+00:00",
   "total_pages_crawled": 25,
   "pages": [
     {
@@ -196,7 +196,7 @@
         "https://crawler-test.com/urls/duplicate_page/foo",
         "https://crawler-test.com/urls/duplicate_page/bar",
         "https://crawler-test.com/urls/duplicate_page/baz",
-        "https://crawler-test.com/urls/with_session_id?sessionID=5t3KzwQ9v2wLR4KPGpLC",
+        "https://crawler-test.com/urls/with_session_id?sessionID=YgYiZj8P5vaHhdlcSvzd",
         "https://crawler-test.com/urls/page_url_length_n",
         "https://crawler-test.com/urls/url_with_fragment#fragment",
         "https://crawler-test.com/url/URL%2c_with_encoded_reserved_character",
@@ -404,7 +404,7 @@
         "https://crawler-test.com/other/conflicting_language_tags",
         "https://crawler-test.com/other/page_load_time_n",
         "https://crawler-test.com/other/crawler_request_headers",
-        "https://crawler-test.com/other/expiring_page_for_removed_test/1780649498.518622",
+        "https://crawler-test.com/other/expiring_page_for_removed_test/1780684783.9300132",
         "https://crawler-test.com/other/duplicated_body_content_1",
         "https://crawler-test.com/other/duplicated_body_content_2",
         "https://crawler-test.com/other/string_width/512/string",
@@ -423,6 +423,15 @@
         "https://crawler-test.com/other/non_head_tag_in_head",
         "https://crawler-test.com/other/link_tag_in_body",
         "https://crawler-test.com/other/basic_auth"
+      ],
+      "image_urls": []
+    },
+    {
+      "url": "https://crawler-test.com/description_tags/description_with_whitespace",
+      "heading": "Description Tag With Whitespace",
+      "first_paragraph": "",
+      "outgoing_links": [
+        "https://crawler-test.com/"
       ],
       "image_urls": []
     },
@@ -554,15 +563,6 @@
     {
       "url": "https://crawler-test.com/mobile/separate_desktop_irregular_media",
       "heading": "Separate Desktop with Meta Irregular Media Pixel Size",
-      "first_paragraph": "",
-      "outgoing_links": [
-        "https://crawler-test.com/"
-      ],
-      "image_urls": []
-    },
-    {
-      "url": "https://crawler-test.com/mobile/separate_desktop_response_header_alt",
-      "heading": "Separate Desktop with Response Header Alt",
       "first_paragraph": "",
       "outgoing_links": [
         "https://crawler-test.com/"
