@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import time
 
 from crawl import command_line_arguments, crawl_site_async, write_json_report
 from notify import send_email_report
@@ -17,19 +16,18 @@ MAX_DEPTH = int(os.getenv("MAX_DEPTH", "20"))
 
 
 async def main_async():
+    res = {}
     try:
-        # command_line_arguments()
-        # res = await crawl_site_async(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
-        # write_json_report(res, base_url=sys.argv[1])
         res = await crawl_site_async(URL, MAX_CONCURRENCY, MAX_PAGES, MAX_DEPTH)
         write_json_report(res, base_url=URL)
-        send_email_report(os.getenv("RECIPIENT_EMAIL"), "report.json")
+        # send_email_report(os.getenv("RECIPIENT_EMAIL"), "report.json")
         graph = build_graph(res, URL)
-        save_graph_image(graph)
-        
-        time.sleep(1000)
+        save_graph_image(graph, base_url=URL)
     except (KeyboardInterrupt, SystemExit):
-        print("Shutting down...")
+        print("Shutting down — writing partial report...")
+        if res:
+            write_json_report(res, base_url=URL, filename="report_partial.json")
+            print(f"Partial report saved: {len(res)} pages crawled.")
         sys.exit(0)
     except Exception as e:
         print(f"Crawl failed: {e}")

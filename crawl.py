@@ -120,6 +120,7 @@ class AsyncCrawler:
         self.all_tasks = all_tasks
         self.max_retries = max_retries
         self.max_depth = max_depth
+        self.visited = set()  # normalized URLs already queued/fetched (dedup guard)
 
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
@@ -128,48 +129,52 @@ class AsyncCrawler:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.session.close()
 
-    async def add_page_visit(self, normalized_url):
+    async def add_page_visit(self, url):
+        normalized = normalize_url(url)
         if self.should_stop:
             return False
-        if len(self.page_data) == self.max_pages:
-            self.should_stop = True
-            print("Reached maximum number of pages to crawl.")
-            for task in self.all_tasks:
-                task.cancel()
-            return False
         async with self.lock:
-            if normalized_url not in self.page_data:
+            if len(self.visited) >= self.max_pages:
+                self.should_stop = True
+                print("Reached maximum number of pages to crawl.")
+                return False
+            if normalized not in self.visited:
+                # Mark as in-progress immediately so concurrent tasks skip this URL
+                self.visited.add(normalized)
                 return True
             return False
 
     async def get_html(self, url):
-        try:
-            async with asyncio.timeout(2):
-                for attempt in range(self.max_retries):
-                    try:
-                        async with self.session.get(
-                            url, headers={"User-Agent": "BootCrawler/1.0"}
-                        ) as res:
-                            if res.status != 200:
-                                print(f"error fetching {url}: status code {res.status}")
-                                return None
-                            elif not res.headers.get("content-type", "").startswith("text/html"):
-                                print(
-                                    f"error fetching {url}: content type {res.headers.get('Content-Type')} is not text/html"
-                                )
-                                return None
-                            else:
-                                logging.info(f"Crawl html complete - {url}")
-                                return await res.text()
-                    except Exception as e:
-                        logging.error(f"Error fetching {url} (attempt {attempt + 1}: {e})")
-                        if attempt == self.max_retries - 1:
-                            print(f"Failed to fetch {url} after {self.max_retries} attempts.")
+        for attempt in range(self.max_retries):
+            try:
+                async with asyncio.timeout(10):
+                    async with self.session.get(
+                        url, headers={"User-Agent": "BootCrawler/1.0"}
+                    ) as res:
+                        if res.status != 200:
+                            print(f"error fetching {url}: status code {res.status}")
                             return None
-        except Exception as e:
-            print(f"Timeout fetching {url}: {e}")
+                        elif not res.headers.get("content-type", "").startswith("text/html"):
+                            print(
+                                f"error fetching {url}: content type {res.headers.get('Content-Type')} is not text/html"
+                            )
+                            return None
+                        else:
+                            logging.info(f"Crawl html complete - {url}")
+                            return await res.text()
+            except asyncio.TimeoutError:
+                print(f"timeout fetching {url}")
+                logging.error(f"Timeout fetching {url} (attempt {attempt + 1})")
+            except Exception as e:
+                logging.error(f"Error fetching {url} (attempt {attempt + 1}): {e}")
 
-    async def crawl_page(self, base_url, current_url=None):
+            if attempt < self.max_retries - 1:
+                await asyncio.sleep(2 ** attempt)  # backoff: 1s, 2s, 4s...
+
+        print(f"Failed to fetch {url} after {self.max_retries} attempts.")
+        return None
+
+    async def crawl_page(self, base_url, current_url=None, depth=0):
         if current_url is None:
             current_url = base_url
 
@@ -185,25 +190,26 @@ class AsyncCrawler:
         if html:
             normalized = normalize_url(current_url)
             print(f"Crawling: {current_url}")
-            if (
-                normalized not in self.page_data
-                and urlparse(current_url).netloc == urlparse(base_url).netloc
-            ):
+            if urlparse(current_url).netloc == urlparse(base_url).netloc:
                 async with self.lock:
-                    self.page_data[normalized] = extract_page_data(html, current_url)
+                    if normalized not in self.page_data:  # skip if already stored (safety check)
+                        self.page_data[normalized] = extract_page_data(html, current_url)
+
+                if depth >= self.max_depth or self.should_stop:
+                    return
+
                 tasks = []
                 try:
                     for url in get_urls_from_html(html, current_url)["urls"]:
-                        if self.max_depth:
-                            return
-                        tasks.append(
-                            asyncio.create_task(self.crawl_page(base_url, url))
-                        )
-                        self.all_tasks.add(tasks[-1])
+                        if self.should_stop:
+                            break
+                        task = asyncio.create_task(self.crawl_page(base_url, url, depth + 1))
+                        tasks.append(task)
+                        self.all_tasks.add(task)
                     await asyncio.gather(*tasks, return_exceptions=True)
                 finally:
                     for task in tasks:
-                        self.all_tasks.remove(task)
+                        self.all_tasks.discard(task)  # discard instead of remove — safe if already gone
 
     async def crawl(self, base_url):
         await self.crawl_page(base_url)
