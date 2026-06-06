@@ -92,32 +92,6 @@ def command_line_arguments():
         print(f"starting crawl of: {sys.argv[1]}")
 
 
-# def get_html(url):
-# url_request = requests.get(url, headers={"User-Agent": "BootCrawler/1.0"})
-# if url_request.status_code != 200:
-#     print(f"error fetching {url}: status code {url_request.status_code}")
-#     return None
-# elif not url_request.headers.get('content-type', "").startswith("text/html"):
-#     print(f"error fetching {url}: content type {url_request.headers.get('Content-Type')} is not text/html")
-#     return None
-# else:
-#     return url_request.text
-
-# def crawl_page(base_url, current_url=None, page_data=None):
-#     if current_url is None:
-#         current_url = base_url
-#     if page_data is None:
-#         page_data = {}
-#     html = get_html(current_url)
-#     normalized = normalize_url(current_url)
-#     print(f"Crawling: {current_url}")
-#     if html and normalized not in page_data and urlparse(current_url).netloc == urlparse(base_url).netloc:
-#         page_data[normalized] = extract_page_data(html, current_url)
-#         for url in get_urls_from_html(html, current_url):
-#             crawl_page(base_url, url, page_data)
-#         return page_data
-
-
 class AsyncCrawler:
     def __init__(
         self,
@@ -255,7 +229,6 @@ async def crawl_site_async(base_url, max_concurrency, max_pages, max_depth):
         return final_page_data
 
 
-
 def write_json_report(page_data, filename="report.json", base_url=None):
     pages = sorted(page_data.values(), key=lambda x: x["url"])
 
@@ -268,5 +241,3 @@ def write_json_report(page_data, filename="report.json", base_url=None):
     
     with open(filename, "w") as f:
         json.dump(initial_page_data, f, indent=2)
-
-

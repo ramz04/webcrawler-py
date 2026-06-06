@@ -10,5 +10,7 @@ dependencies = [
     "beautifulsoup4==4.13.4",
     "bs4>=0.0.2",
     "dotenv>=0.9.9",
+    "matplotlib>=3.10.9",
+    "networkx>=3.6.1",
     "requests==2.32.4",
 ]

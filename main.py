@@ -6,6 +6,7 @@ import time
 from crawl import command_line_arguments, crawl_site_async, write_json_report
 from notify import send_email_report
 from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
+from visualise import build_graph, save_graph_image
 
 load_dotenv()
 
@@ -23,6 +24,9 @@ async def main_async():
         res = await crawl_site_async(URL, MAX_CONCURRENCY, MAX_PAGES, MAX_DEPTH)
         write_json_report(res, base_url=URL)
         send_email_report(os.getenv("RECIPIENT_EMAIL"), "report.json")
+        graph = build_graph(res, URL)
+        save_graph_image(graph)
+        
         time.sleep(1000)
     except (KeyboardInterrupt, SystemExit):
         print("Shutting down...")
