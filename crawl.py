@@ -31,8 +31,11 @@ def get_first_paragraph_from_html(html: str) -> str:
     return ""
 
 
-def get_urls_from_html(html: str, base_url: str) -> list[str]:
+def get_urls_from_html(html: str, base_url: str):
     urls = []
+    internal_links = []
+    external_links = []
+    base_domain = urlparse(base_url).netloc
     parsed = soup(html, "html.parser")
     for a in parsed.find_all("a"):
         href = a.get("href")
@@ -42,9 +45,17 @@ def get_urls_from_html(html: str, base_url: str) -> list[str]:
             url = urljoin(base_url, href)
             if urlparse(url).scheme in ("http", "https"):
                 urls.append(url)
+            if base_domain == urlparse(url).netloc:
+                internal_links.append(url)
+            else:
+                external_links.append(url)
         except ValueError:
             continue
-    return urls
+    return {
+        "urls": urls,
+        "internal_links": internal_links,
+        "external_links": external_links,
+    }
 
 
 def get_images_from_html(html, base_url):
@@ -56,11 +67,16 @@ def get_images_from_html(html, base_url):
 
 
 def extract_page_data(html: str, page_url: str):
+    link_data = get_urls_from_html(html, page_url)
     return {
         "url": page_url,
         "heading": get_heading_from_html(html),
         "first_paragraph": get_first_paragraph_from_html(html),
-        "outgoing_links": get_urls_from_html(html, page_url),
+        "outgoing_links": link_data["urls"],
+        "internal_links": link_data["internal_links"],
+        "internal_links_count": len(link_data["internal_links"]),
+        "external_links": link_data["external_links"],
+        "external_links_count": len(link_data["external_links"]),
         "image_urls": get_images_from_html(html, page_url),
     }
 
@@ -132,8 +148,7 @@ class AsyncCrawler:
         self.max_depth = max_depth
 
     async def __aenter__(self):
-        timeout = aiohttp.ClientTimeout(total=10)
-        self.session = aiohttp.ClientSession(total=timeout)
+        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -204,7 +219,7 @@ class AsyncCrawler:
                     self.page_data[normalized] = extract_page_data(html, current_url)
                 tasks = []
                 try:
-                    for url in get_urls_from_html(html, current_url):
+                    for url in get_urls_from_html(html, current_url)["urls"]:
                         if self.max_depth:
                             return
                         tasks.append(
@@ -255,27 +270,3 @@ def write_json_report(page_data, filename="report.json", base_url=None):
         json.dump(initial_page_data, f, indent=2)
 
 
-# def write_csv_report(page_data, filename="report.csv"):
-#     pages = sorted(page_data.values(), key=lambda x: x["url"])
-#     with open(filename, "w", newline="", encoding="utf-8") as f:
-#         writer = csv.DictWriter(
-#             f,
-#             fieldnames=[
-#                 "url",
-#                 "heading",
-#                 "first_paragraph",
-#                 "outgoing_links",
-#                 "image_urls",
-#             ],
-#         )
-#         writer.writeheader()
-#         for page in pages:
-#             writer.writerow(
-#                 {
-#                     "url": page["url"],
-#                     "heading": page["heading"],
-#                     "first_paragraph": page["first_paragraph"],
-#                     "outgoing_links": " | ".join(page["outgoing_links"]),
-#                     "image_urls": " | ".join(page["image_urls"]),
-#                 }
-#             )
